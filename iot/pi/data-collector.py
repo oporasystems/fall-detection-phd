@@ -38,15 +38,25 @@ bus = smbus.SMBus(1)  # I2C bus number on Raspberry Pi
 # Create I2C bus at standard speed
 i2c = busio.I2C(board.SCL, board.SDA, frequency=400000)
 
+
+def init_bmp_388():
+    bmp = adafruit_bmp3xx.BMP3XX_I2C(i2c)
+    # Set the oversampling for pressure and temperature
+    bmp.pressure_oversampling = 8  # Options: 1, 2, 4, 8, 16, 32
+    bmp.temperature_oversampling = 8  # Options: 1, 2, 4, 8, 16, 32
+    return bmp
+
+
 # Create sensor object, using the I2C bus
-bmp = adafruit_bmp3xx.BMP3XX_I2C(i2c)
+bmp = init_bmp_388()
 
 # Initialize variables for filtering
+current_altitude = None
 previous_filtered_altitude = None
 alpha = 0.1  # Smoothing factor for low-pass filter
 
 # Define the sampling rate and corresponding sleep time
-sampling_rate = 140  # Hz
+sampling_rate = 100  # Hz
 
 window_size = 50  # Define the window size (number of readings to consider in the moving average)
 
@@ -75,9 +85,10 @@ sea_level_pressure = get_sea_level_pressure('Lviv')
 
 
 def read_altitude_continuously():
-    global current_altitude
+    global current_altitude, previous_filtered_altitude
     while True:
         altitude = bmp.altitude  # Read altitude from BMP388
+        previous_filtered_altitude = altitude
         current_altitude = altitude  # Update the global variable
         time.sleep(1.0 / sampling_rate)  # Adjust sleep to control reading frequency
 
@@ -89,20 +100,20 @@ altitude_thread.start()
 
 
 def read_and_filter_altitude():
-    global previous_filtered_altitude, current_altitude
-    if current_altitude is None:
-        return None  # No altitude reading yet
+    global current_altitude
+    # if current_altitude is None:
+    #     return None  # No altitude reading yet
+    #
+    # altitude = current_altitude  # Use the altitude value from the global variable
+    #
+    # # Apply low-pass filter
+    # if previous_filtered_altitude is None:
+    #     filtered_altitude = altitude
+    # else:
+    #     filtered_altitude = alpha * altitude + (1 - alpha) * previous_filtered_altitude
+    # previous_filtered_altitude = filtered_altitude
 
-    altitude = current_altitude  # Use the altitude value from the global variable
-
-    # Apply low-pass filter
-    if previous_filtered_altitude is None:
-        filtered_altitude = altitude
-    else:
-        filtered_altitude = alpha * altitude + (1 - alpha) * previous_filtered_altitude
-    previous_filtered_altitude = filtered_altitude
-
-    return filtered_altitude
+    return current_altitude
 
 
 def read_raw_data(addr):
@@ -467,7 +478,7 @@ def flip_alert_property():
 
 
 def collect():
-    global collection_of_data_enabled
+    global collection_of_data_enabled, bmp
 
     if collection_of_data_enabled:
         print("Iteration started")
@@ -482,6 +493,8 @@ def collect():
         save_csv(filtered_data)
 
         play_alarm(beep_count=2, beep_duration=0.2, pause_duration=0.2)
+
+        #bmp = init_bmp_388()
 
         sleep(5, 100)
     else:

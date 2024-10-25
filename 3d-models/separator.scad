@@ -9,8 +9,8 @@ separator_thickness = 2;           // Thickness of the separator
 separator_clearance = 0.2;         // Clearance for proper fit
 
 // Pillar parameters
-pillar_radius = 1.5;               // Radius of the pillars
-pillar_height = 14;                // Height of the pillars (as per your request)
+pillar_radius = 2;               // Radius of the pillars
+pillar_height = 12;                // Height of the pillars (as per your request)
 pillar_margin = 1;                 // Margin from the edges
 
 // Ventilation parameters
