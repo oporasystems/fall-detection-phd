@@ -1,6 +1,6 @@
 // Parameters
 length = 76;            // Outer length of the box
-width = 37;             // Outer width of the box
+width = 40;             // Outer width of the box
 height = 25;            // Height of the box
 wall_thickness = 2;     // Thickness of the walls (returned to 2mm)
 corner_radius = 5;      // Radius of the outer corners
@@ -10,19 +10,19 @@ usb_width = 10;         // Width of the USB Type-C hole
 usb_height = 4;         // Height of the USB Type-C hole
 usb_corner_radius = 1;  // Corner radius for the USB hole (optional)
 usb_position_y = 0;     // Y position (centered vertically on the side wall)
-usb_position_z = wall_thickness + usb_height / 2 + 2; // Near bottom edge
+usb_position_z = wall_thickness + usb_height / 2 + 10; // Near bottom edge
 
 // Push button hole parameters
 button_size = 6;        // Size of the push button holes (6mm x 6mm)
 button1_position_x = -length / 4;  // Position of the first button hole
 button2_position_x = length / 4;   // Position of the second button hole
-button_position_z = (height / 2) - 4;    // Centered vertically
+button_position_z = (height / 2);    // Centered vertically
 
 // New hole parameters
 new_hole_width = 13;        // Width of the new hole (along the x-axis)
 new_hole_height = 9;      // Height of the new hole (along the z-axis)
 new_hole_position_x = 0;   // Position of the new hole along the x-axis (centered between existing holes)
-new_hole_position_z = button_position_z - 1.5; // Vertical position (same as existing holes)
+new_hole_position_z = button_position_z + 3; // Vertical position (same as existing holes)
 
 // Tolerance for proper subtraction
 epsilon = 0.1;          // Small offset to ensure clean subtraction

@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import time
 
 
-def save_plots(filtered_data):
+def save_plots(filtered_data, filename):
     print("Started saving plots")
     # Create the folder to save plots if it doesn't exist
     folder_path = '/Users/ivanursul/Downloads/pi-plots'
@@ -55,7 +55,7 @@ def save_plots(filtered_data):
     plt.tight_layout()
 
     # Save the figure as a single PNG file
-    plt.savefig(os.path.join(folder_path, f'accelerometer_plots_{timestamp}.png'))
+    plt.savefig(os.path.join(folder_path, f'{filename}.png'))
     plt.close()
 
 def read_csv_files_and_plot(folder_path):
@@ -75,7 +75,7 @@ def read_csv_files_and_plot(folder_path):
 
                 if all(col in data.columns for col in required_columns):
                     # Pass the filtered data to the save_plots function
-                    save_plots(data)
+                    save_plots(data, os.path.splitext(filename)[0])
                 else:
                     print(f"Skipping {filename}: Missing required columns")
 

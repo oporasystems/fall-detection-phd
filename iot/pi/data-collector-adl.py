@@ -52,7 +52,6 @@ bmp = init_bmp_388()
 
 # Initialize variables for filtering
 current_altitude = None
-previous_filtered_altitude = None
 alpha = 0.1  # Smoothing factor for low-pass filter
 
 # Define the sampling rate and corresponding sleep time
@@ -85,10 +84,9 @@ sea_level_pressure = get_sea_level_pressure('Lviv')
 
 
 def read_altitude_continuously():
-    global current_altitude, previous_filtered_altitude
+    global current_altitude
     while True:
         altitude = bmp.altitude  # Read altitude from BMP388
-        previous_filtered_altitude = altitude
         current_altitude = altitude  # Update the global variable
         time.sleep(1.0 / sampling_rate)  # Adjust sleep to control reading frequency
 
@@ -101,18 +99,6 @@ altitude_thread.start()
 
 def read_and_filter_altitude():
     global current_altitude
-    # if current_altitude is None:
-    #     return None  # No altitude reading yet
-    #
-    # altitude = current_altitude  # Use the altitude value from the global variable
-    #
-    # # Apply low-pass filter
-    # if previous_filtered_altitude is None:
-    #     filtered_altitude = altitude
-    # else:
-    #     filtered_altitude = alpha * altitude + (1 - alpha) * previous_filtered_altitude
-    # previous_filtered_altitude = filtered_altitude
-
     return current_altitude
 
 
@@ -426,7 +412,7 @@ def signal_app_start(beep_count=3, beep_duration=0.1, pause_duration=0.05):
         time.sleep(pause_duration)  # Short pause between beeps
 
 
-def is_button_pressed():
+def is_turn_on_off_button_pressed():
     input_state = GPIO.input(24)
     return input_state == GPIO.LOW  # Return True if button is pressed (LOW state)
 
@@ -444,7 +430,7 @@ def sleep(seconds, frequency_hz):
         # Sleep for the calculated interval
         time.sleep(interval)
 
-        if is_button_pressed():
+        if is_turn_on_off_button_pressed():
             flip_collect_property()
 
         if is_alert_button_pressed():
@@ -482,7 +468,7 @@ def collect():
 
     if collection_of_data_enabled:
         print("Iteration started")
-        play_alarm(beep_count=1, beep_duration=0.2, pause_duration=0.2)
+        #play_alarm(beep_count=1, beep_duration=0.2, pause_duration=0.2)
         data_records = collect_interval_records()
 
         if not collection_of_data_enabled:
@@ -492,15 +478,13 @@ def collect():
         filtered_data = filter_data(data_records)
         save_csv(filtered_data)
 
-        play_alarm(beep_count=2, beep_duration=0.2, pause_duration=0.2)
+        #play_alarm(beep_count=2, beep_duration=0.2, pause_duration=0.2)
 
-        #bmp = init_bmp_388()
-
-        sleep(5, 100)
+        sleep(0.1, 100)
     else:
         sleep(1, 100)
 
-    if is_button_pressed():
+    if is_turn_on_off_button_pressed():
         flip_collect_property()
         sleep(1, 100)
 
@@ -512,14 +496,21 @@ def save_csv(filtered_data):
         return
 
     print("Started saving csv")
-    # Ensure the folder exists
-    folder_path = '/home/ivanursul/accelerometer_data_raw'
+    # Define the main folder path
+    base_folder_path = '/home/ivanursul/accelerometer_data_raw'
+    # Generate the date-based subfolder name
+    date_subfolder = time.strftime("%d_%m_%Y")
+    folder_path = os.path.join(base_folder_path, date_subfolder)
+
+    # Ensure the subfolder exists
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
+
     # Generate a unique filename with timestamp
     timestamp = time.strftime("%Y%m%d_%H%M%S")
     filename = f"accelerometer_data_{timestamp}.csv"
     file_path = os.path.join(folder_path, filename)
+
     # Convert the data_records to a DataFrame for saving to CSV
     filtered_data.to_csv(file_path, index=False)
 
@@ -533,7 +524,7 @@ def collect_interval_records():
     # Collect 800 records at 100Hz
     start_time = time.time()
     for i in range(800):
-        if is_button_pressed():
+        if is_turn_on_off_button_pressed():
             flip_collect_property()
             break
 
