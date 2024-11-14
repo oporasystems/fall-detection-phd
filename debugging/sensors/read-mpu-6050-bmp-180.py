@@ -87,7 +87,7 @@ def read_unsigned_16_bit(address, register):
 # Read temperature and calculate B5
 def read_bmp180_temperature(cal):
     bus.write_byte_data(BMP180_ADDR, BMP180_CONTROL, BMP180_READTEMPCMD)
-    time.sleep(0.005)  # Wait for conversion
+    time.sleep(0.005)  # Wait for converter
     UT = read_unsigned_16_bit(BMP180_ADDR, BMP180_TEMPDATA)
 
     # Calculate true temperature using calibration data
@@ -103,7 +103,7 @@ def read_bmp180_temperature(cal):
 def read_bmp180_pressure(cal, B5):
     OSS = 3  # Oversampling setting
     bus.write_byte_data(BMP180_ADDR, BMP180_CONTROL, BMP180_READPRESSURECMD + (OSS << 6))
-    time.sleep(0.026)  # Wait for conversion
+    time.sleep(0.026)  # Wait for converter
     MSB = bus.read_byte_data(BMP180_ADDR, BMP180_PRESSUREDATA)
     LSB = bus.read_byte_data(BMP180_ADDR, BMP180_PRESSUREDATA + 1)
     XLSB = bus.read_byte_data(BMP180_ADDR, BMP180_PRESSUREDATA + 2)
