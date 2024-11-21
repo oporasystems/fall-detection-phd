@@ -32,6 +32,10 @@ ACCEL_CONFIG = 0x1C
 ACCEL_XOUT_H = 0x3B
 ACCEL_YOUT_H = 0x3D
 ACCEL_ZOUT_H = 0x3F
+GYRO_XOUT_H = 0x43
+GYRO_YOUT_H = 0x45
+GYRO_ZOUT_H = 0x47
+TEMP_OUT_H = 0x41
 
 bus = smbus.SMBus(1)  # I2C bus number on Raspberry Pi
 
@@ -172,6 +176,28 @@ def read_accelerometer(scaling_factor):
     acc_z_g = acc_z / scaling_factor
 
     return acc_x_g, acc_y_g, acc_z_g
+
+
+def read_gyroscope(scaling_factor):
+    # Reading the raw gyroscope values
+    gyro_x = read_raw_data(GYRO_XOUT_H)
+    gyro_y = read_raw_data(GYRO_YOUT_H)
+    gyro_z = read_raw_data(GYRO_ZOUT_H)
+
+    # Scale the raw gyroscope values to degrees/sec based on the selected range
+    gyro_x_dps = gyro_x / scaling_factor
+    gyro_y_dps = gyro_y / scaling_factor
+    gyro_z_dps = gyro_z / scaling_factor
+
+    return gyro_x_dps, gyro_y_dps, gyro_z_dps
+
+
+def read_temperature():
+    # Read the raw temperature value
+    temp_raw = read_raw_data(TEMP_OUT_H)
+    # Convert the raw temperature value to Celsius
+    temp_c = (temp_raw / 340.0) + 36.53
+    return temp_c
 
 
 # Function to calculate the magnitude of a vector (x, y, z)
@@ -518,7 +544,7 @@ def save_csv(filtered_data):
 def collect_interval_records():
     data_records = pd.DataFrame(
         0.0, index=np.arange(800),
-        columns=['AccX', 'AccY', 'AccZ', 'Magnitude', 'Altitude']
+        columns=['AccX', 'AccY', 'AccZ', 'Magnitude', 'GyroX', 'GyroY', 'GyroZ', 'Temperature', 'Altitude']
     )
 
     # Collect 800 records at 100Hz
@@ -530,7 +556,8 @@ def collect_interval_records():
 
         # Read the sensor data
         acc_x, acc_y, acc_z = read_accelerometer(scaling_factor)
-
+        gyro_x, gyro_y, gyro_z = read_gyroscope(scaling_factor)
+        temperature = read_temperature()
         # Calculate magnitude
         magnitude = calculate_magnitude(acc_x, acc_y, acc_z - 1)
 
@@ -538,7 +565,7 @@ def collect_interval_records():
         altitude = read_and_filter_altitude()
 
         # Assign the data to the DataFrame
-        data_records.iloc[i] = [acc_x, acc_y, acc_z - 1, magnitude, altitude]
+        data_records.iloc[i] = [acc_x, acc_y, acc_z - 1, magnitude, gyro_x, gyro_y, gyro_z, temperature, altitude]
 
         # Calculate how long the loop took and adjust sleep to maintain 100Hz
         elapsed_time = time.time() - start_time
