@@ -1,0 +1,17 @@
+Project Outputs Generation Report
+---------------------------------
+Start Output Generation At 11:50:35 AM On 11/19/2024
+
+Output: NC Drill Files
+Type  : NC Drill
+From  : PCB Document [2.PcbDoc]
+   Generated File[Ivan Ursul - RPi ZERO-RoundHoles.TXT]
+   Generated File[Ivan Ursul - RPi ZERO-SlotHoles.TXT]
+   Generated File[Ivan Ursul - RPi ZERO.LDP]
+   Generated File[Ivan Ursul - RPi ZERO.DRR]
+
+
+Files Generated   : 4
+Documents Printed : 0
+
+Finished Output Generation At 11:50:36 AM On 11/19/2024

@@ -1,0 +1,17 @@
+Added Component: Designator=S1(EVQPUC02K)
+Add component (AddParameter): Name = "Man. PN"; Value = "EVQPUC02K"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Manufacturer"; Value = "Panasonic"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Other"; Value = "Pushbutton edge SMT"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Supplier"; Value = "LCSC"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Supplier PN"; Value = "C79174"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Value"; Value = "PB+NO"; VariantName = "[No Variations]"
+Added Pin To Net: NetName=BTN1 Pin=S1-1
+Added Pin To Net: NetName=GND Pin=S1-2
+Added Pin To Net: NetName=BTN1 Pin=S1-3
+Added Pin To Net: NetName=GND Pin=S1-4
+Added Pin To Net: NetName=BTN2 Pin=S2-1
+Added Pin To Net: NetName=GND Pin=S2-2
+Added Pin To Net: NetName=BTN2 Pin=S2-3
+Added Pin To Net: NetName=GND Pin=S2-4
+Added Member To Class: ClassName=Base Board Member=Component S1 EVQPUC02K
+Added Member To Class: ClassName=Base Board Member=Component S2 EVQPUC02K

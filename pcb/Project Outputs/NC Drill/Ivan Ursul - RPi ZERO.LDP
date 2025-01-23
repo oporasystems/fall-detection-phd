@@ -1,0 +1,3 @@
+Layer Pairs Export File for PCB: E:\Projects\2024\Ivan Ursul - RPi ZERO\Ivan Ursul - RPi ZERO\2.PcbDoc
+LayersSetName=Top_Bot_Thru_Holes|DrillFile=ivan ursul - rpi zero-roundholes.txt|DrillLayers=gtl,gbl
+LayersSetName=Top_Bot_Slot_Holes|DrillFile=ivan ursul - rpi zero-slotholes.txt|DrillLayers=gtl,gbl

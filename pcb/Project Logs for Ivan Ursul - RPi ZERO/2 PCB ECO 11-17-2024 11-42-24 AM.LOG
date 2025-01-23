@@ -1,0 +1,13 @@
+Added Component: Designator=JP2(AUDIO-JACK-3.5MM-SMD)
+Add component (AddParameter): Name = "DeviceName"; Value = "SMD2"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "DeviceSetName"; Value = "AUDIO-JACK"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "GateName_1"; Value = "G$1"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L"; Value = "L"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "LibraryName"; Value = "SparkFun-Connectors"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "PROD_ID"; Value = "CONN-10353"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "R"; Value = "R"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "SymbolName_1"; Value = "AUDIO-JACK"; VariantName = "[No Variations]"
+Added Pin To Net: NetName=LA Pin=JP2-RING
+Added Pin To Net: NetName=RA Pin=JP2-SLEEVE
+Added Pin To Net: NetName=RL Pin=JP2-TIP
+Added Member To Class: ClassName=Base Board Member=Component JP2 AUDIO-JACKSMD2

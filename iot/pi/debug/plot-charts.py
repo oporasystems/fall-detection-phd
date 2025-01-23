@@ -44,9 +44,8 @@ def save_plots(filtered_data, filename):
     axs[1, 0].legend()
 
     # Plot 4: 'Altitude' and 'MovingAvgAltitude'
-    axs[1, 1].plot(filtered_data['Altitude'], label='Altitude')
-    axs[1, 1].plot(filtered_data['altitude_filtered'], label='Altitude filtered', color='orange', linewidth=2)
-    axs[1, 1].set_title('Altitude Data and Moving Average')
+    axs[1, 1].plot(filtered_data['Altitude_Delta'], label='Altitude_Delta')
+    axs[1, 1].set_title('Altitude Delta')
     axs[1, 1].set_xlabel('Time')
     axs[1, 1].set_ylabel('Altitude (m)')
     axs[1, 1].legend()
@@ -71,7 +70,7 @@ def read_csv_files_and_plot(folder_path):
 
                 # Ensure the necessary columns exist
                 required_columns = ['AccX', 'AccY', 'AccZ', 'acc_x_filtered', 'acc_y_filtered', 'acc_z_filtered',
-                                    'Magnitude', 'acc_magnitude_filtered', 'Altitude']
+                                    'Magnitude', 'acc_magnitude_filtered', 'Altitude_Delta']
 
                 if all(col in data.columns for col in required_columns):
                     # Pass the filtered data to the save_plots function
@@ -85,5 +84,5 @@ def read_csv_files_and_plot(folder_path):
 
 
 # Call the method to read files and generate plots
-folder_path = '/Users/ivanursul/Downloads/accelerometer_data_raw'  # Replace with your folder path
+folder_path = '/Users/ivanursul/Documents/Dataset V3/Falls'  # Replace with your folder path
 read_csv_files_and_plot(folder_path)

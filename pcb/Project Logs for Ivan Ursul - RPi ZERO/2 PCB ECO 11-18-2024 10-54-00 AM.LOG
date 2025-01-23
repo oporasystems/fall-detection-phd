@@ -1,0 +1,22 @@
+Added Component: Designator=D3(LED_KP-1608SURCK)
+Add component (AddParameter): Name = "Check_prices"; Value = "https://www.snapeda.com/parts/KP-1608SURCK/Kingbright/view-part/?ref=eda"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "MF"; Value = "Kingbright"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "MP"; Value = "KP-1608SURCK"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Package"; Value = "0603 Kingbright"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "SnapEDA_Link"; Value = "https://www.snapeda.com/parts/KP-1608SURCK/Kingbright/view-part/?ref=snap"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Value"; Value = ""; VariantName = "[No Variations]"
+Added Component: Designator=R31(R0603)
+Add component (AddParameter): Name = "Digikey Part"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "LCSC Part"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "MF"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Mouser Part"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "MP"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Package"; Value = "0603"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Value"; Value = "1K"; VariantName = "[No Variations]"
+Added Pin To Net: NetName=GND Pin=D3-2
+Added Pin To Net: NetName=+3.3V Pin=R31-1
+Added Pin To Net: NetName=NetD3_1 Pin=D3-1
+Added Pin To Net: NetName=NetD3_1 Pin=R31-2
+Added Net: Name=NetD3_1
+Added Member To Class: ClassName=Base Board Member=Component D3 KP-1608SURCK
+Added Member To Class: ClassName=Base Board Member=Component R31 1K

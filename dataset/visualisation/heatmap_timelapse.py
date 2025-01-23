@@ -8,7 +8,7 @@ from datetime import datetime
 import cv2  # Import OpenCV for video creation
 
 # Set the folder path containing CSV files
-folder_path = '/Users/ivanursul/Documents/Dataset V2/Activities/Falls'  # Replace with your actual path
+folder_path = '/Users/ivanursul/Documents/Dataset V3/Falls'  # Replace with your actual path
 
 # Function to extract datetime from filename
 def extract_datetime(filename):

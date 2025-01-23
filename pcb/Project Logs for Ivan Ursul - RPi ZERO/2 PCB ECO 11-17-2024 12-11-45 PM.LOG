@@ -1,0 +1,4 @@
+Removed Pin From Net: NetName=LA Pin=JP2-RING
+Removed Pin From Net: NetName=RA Pin=JP2-SLEEVE
+Removed Pin From Net: NetName=RL Pin=JP2-TIP
+Removed Member From Class: ClassName=Base Board Member=JP2
