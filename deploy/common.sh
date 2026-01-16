@@ -165,31 +165,27 @@ setup_swap() {
     print_status "2/7" "Checking swap space..."
 
     # Check current swap in MB
-    local swap_total=$(run_on_pi "free -m | grep Swap | awk '{print \$2}'")
+    local swap_total=$(run_on_pi "free -m | grep Swap | awk '{print \$2}'" 2>/dev/null || echo "0")
 
     if [ "$swap_total" -lt 512 ] 2>/dev/null; then
-        echo "      Current swap: ${swap_total}MB - creating swap file..."
+        echo "      Current swap: ${swap_total}MB - setting up swap..."
 
-        # Create swap file if it doesn't exist
-        if ! run_on_pi "test -f /swapfile"; then
-            echo "      Allocating 1GB (this may take a minute)..."
-            run_on_pi "sudo fallocate -l 1G /swapfile 2>/dev/null || sudo dd if=/dev/zero of=/swapfile bs=1M count=1024 status=progress"
-            echo "      Setting permissions..."
-            run_on_pi "sudo chmod 600 /swapfile"
-            echo "      Formatting swap..."
-            run_on_pi "sudo mkswap /swapfile"
-        fi
+        # Run all swap commands in one SSH session to avoid connection issues
+        run_on_pi "
+            if [ ! -f /swapfile ]; then
+                echo 'Creating swap file...'
+                sudo fallocate -l 1G /swapfile 2>/dev/null || sudo dd if=/dev/zero of=/swapfile bs=1M count=1024
+                sudo chmod 600 /swapfile
+                sudo mkswap /swapfile
+            fi
+            sudo swapon /swapfile 2>/dev/null || true
+            grep -q '/swapfile' /etc/fstab || echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab > /dev/null
+            free -m | grep Swap
+        " || print_warning "Swap setup had issues, continuing anyway..."
 
-        # Enable swap
-        echo "      Enabling swap..."
-        run_on_pi "sudo swapon /swapfile 2>/dev/null || true"
-
-        # Make permanent
-        run_on_pi "grep -q '/swapfile' /etc/fstab || echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab > /dev/null"
-
-        print_success "Swap configured (1GB)"
+        print_success "Swap setup complete"
     else
-        echo "      Swap already sufficient: ${swap_total}MB"
+        echo "      Swap sufficient: ${swap_total}MB"
     fi
 }
 
