@@ -21,14 +21,14 @@ logger = setup_logging("fall-detector")
 # Create a new Mpu6050 object
 device = torch.device('cpu')
 
-# Initialize the model architecture
+# Initialize the model architecture (must match trained model)
 input_dim = 4  # AccX, AccY, AccZ
 num_heads = 4
-num_layers = 1
+num_layers = 4
 num_classes = 2  # Fall or non-fall
 num_epochs = 20
 dropout = 0.3812751434586094
-hidden_dim = 16
+hidden_dim = 128
 learning_rate = 0.0006692265522994677
 max_sequence_length=800
 
