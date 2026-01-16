@@ -15,14 +15,39 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 DEPLOY_CONFIG="${SCRIPT_DIR}/.deploy-config"
 
-# Print ASCII banner
+# Print ASCII banner with falling animation
 print_banner() {
+    # Animation frames
+    local frames=(
+        "         O          \n        /|\\         \n        / \\    /    \n              /     \n       ~~~~~~~~~~~  "
+        "          \\O        \n           |\\       \n          / \\  /    \n              /     \n       ~~~~~~~~~~~  "
+        "           \\O/      \n            |   /   \n           / \\ /    \n              /     \n       ~~~~~~~~~~~  "
+        "            O__     \n           /|   /   \n           / \\  /    \n              /     \n       ~~~~~~~~~~~  "
+        "             _O/    \n            / |/    \n              /\\    \n             / /    \n       ~~~~~~~~~~~  "
+        "              O     \n             /|/    \n             /|     \n            / |     \n       ~~~~~~~~~~~  "
+        "             \\O/    \n              |     \n             /|\\    \n              |     \n       ~~~~~~~~~~~  "
+    )
+
     echo ""
-    echo -e "${BLUE}        \\O/${NC}"
-    echo -e "${BLUE}         |    /${NC}"
-    echo -e "${BLUE}        / \\  /${NC}"
-    echo -e "${BLUE}            /${NC}"
-    echo -e "${BLUE}       ~~~~~~~~~~~${NC}"
+
+    # Play animation
+    for frame in "${frames[@]}"; do
+        # Move cursor up 5 lines (or just print if first frame)
+        if [ "$frame" != "${frames[0]}" ]; then
+            echo -e "\033[5A"
+        fi
+        echo -e "${BLUE}${frame}${NC}"
+        sleep 0.15
+    done
+
+    # Final static frame
+    echo -e "\033[5A"
+    echo -e "${BLUE}        \\O/${NC}         "
+    echo -e "${BLUE}         |    /${NC}     "
+    echo -e "${BLUE}        / \\  /${NC}      "
+    echo -e "${BLUE}            /${NC}       "
+    echo -e "${BLUE}       ~~~~~~~~~~~${NC}  "
+
     echo ""
     echo -e "${GREEN}  FALL DETECTION SYSTEM${NC}"
     echo ""
