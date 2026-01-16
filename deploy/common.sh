@@ -231,7 +231,19 @@ upload_file() {
 
 # Run calibration on Pi
 run_calibration() {
-    print_status "5/7" "Running sensor calibration..."
+    print_status "5/7" "Checking calibration..."
+
+    # Check if already calibrated
+    if run_on_pi "test -f /home/${PI_USER}/mpu_offsets.json" 2>/dev/null; then
+        echo "      Calibration file found"
+        read -p "      Re-calibrate? [y/N]: " recalibrate
+        recalibrate=${recalibrate:-N}
+        if [[ ! "$recalibrate" =~ ^[Yy]$ ]]; then
+            print_success "Using existing calibration"
+            return
+        fi
+    fi
+
     echo ""
     print_warning "Place the device on a flat, level surface"
     print_warning "Keep it completely stationary during calibration"
