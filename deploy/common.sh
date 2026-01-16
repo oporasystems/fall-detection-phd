@@ -211,9 +211,9 @@ install_dependencies() {
     for pkg in $packages; do
         # Use pip show instead of python import (uses less memory)
         if run_on_pi "pip show $pkg >/dev/null 2>&1"; then
-            echo "        ✓ $pkg"
+            echo "        ✓ $pkg (installed)"
         else
-            echo "        - Installing $pkg..."
+            echo "        ✗ $pkg (missing) - installing..."
             run_on_pi "pip install --quiet --no-cache-dir $pkg --break-system-packages 2>/dev/null || pip install --quiet --no-cache-dir $pkg" || true
         fi
     done
