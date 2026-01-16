@@ -66,15 +66,28 @@ copy_to_pi() {
     sshpass -p "$PI_PASS" scp -o StrictHostKeyChecking=no "$src" "${PI_USER}@${PI_HOST}:${dest}"
 }
 
-# Install dependencies on Pi
+# Install dependencies on Pi (only if not already installed)
 install_dependencies() {
-    print_status "2/6" "Installing dependencies..."
+    print_status "2/6" "Checking dependencies..."
 
-    run_on_pi "sudo apt-get update -qq"
-    run_on_pi "sudo apt-get install -y -qq i2c-tools python3-pip"
-    run_on_pi "pip install --quiet pandas smbus numpy scikit-learn torch scipy RPi.GPIO board Adafruit-Blinka adafruit-circuitpython-bmp3xx performer-pytorch --break-system-packages 2>/dev/null || pip install --quiet pandas smbus numpy scikit-learn torch scipy RPi.GPIO board Adafruit-Blinka adafruit-circuitpython-bmp3xx performer-pytorch"
+    # Check if i2c-tools is installed
+    if ! run_on_pi "dpkg -s i2c-tools > /dev/null 2>&1"; then
+        echo "      Installing system packages..."
+        run_on_pi "sudo apt-get update -qq"
+        run_on_pi "sudo apt-get install -y -qq i2c-tools python3-pip"
+    else
+        echo "      System packages already installed"
+    fi
 
-    print_success "Dependencies installed"
+    # Check if Python packages are installed by testing a key import
+    if ! run_on_pi "python3 -c 'import torch; import performer_pytorch' 2>/dev/null"; then
+        echo "      Installing Python packages (this may take a while on first run)..."
+        run_on_pi "pip install --quiet pandas smbus numpy scikit-learn torch scipy RPi.GPIO board Adafruit-Blinka adafruit-circuitpython-bmp3xx performer-pytorch --break-system-packages 2>/dev/null || pip install --quiet pandas smbus numpy scikit-learn torch scipy RPi.GPIO board Adafruit-Blinka adafruit-circuitpython-bmp3xx performer-pytorch"
+    else
+        echo "      Python packages already installed"
+    fi
+
+    print_success "Dependencies ready"
 }
 
 # Upload files to Pi
