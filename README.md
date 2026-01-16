@@ -127,6 +127,11 @@ journalctl -u fall-detector.service --no-pager --lines=50
 fall-detection-phd/
 ├── config.yaml                 # Base configuration (committed)
 ├── config.local.yaml.example   # Template for local overrides
+├── deploy/                         # Deployment scripts
+│   ├── common.sh                   # Shared deployment functions
+│   ├── deploy-fall-detector.sh     # Deploy production fall detection
+│   ├── deploy-adl-collector.sh     # Deploy ADL data collector
+│   └── deploy-fall-collector.sh    # Deploy fall data collector
 ├── iot/
 │   ├── pi/
 │   │   ├── fall-detector.py        # Production fall detection (uses Performer)
@@ -256,6 +261,90 @@ Collects fall event data with an intelligent timing system:
 - Ensures balanced dataset distribution across all 100ms intervals
 
 This approach prevents bias in fall timing and improves model generalization.
+
+## Deployment
+
+Automated deployment scripts make it easy to set up Raspberry Pi devices for your team.
+
+### Prerequisites
+
+Install `sshpass` on your local machine for automated SSH:
+
+```bash
+# macOS
+brew install hudochenkov/sshpass/sshpass
+
+# Ubuntu/Debian
+sudo apt install sshpass
+```
+
+### Deploy Fall Detector (Production)
+
+```bash
+./deploy/deploy-fall-detector.sh
+```
+
+Deploys real-time fall detection:
+- Uploads `fall-detector.py` and trained Performer model
+- Runs sensor calibration
+- Sets up auto-start systemd service
+
+### Deploy ADL Data Collector
+
+```bash
+./deploy/deploy-adl-collector.sh
+```
+
+Deploys data collection for normal daily activities:
+- Uploads `data-collector-adl.py`
+- Runs sensor calibration
+- Sets up systemd service
+
+### Deploy Fall Data Collector
+
+```bash
+./deploy/deploy-fall-collector.sh
+```
+
+Deploys data collection for fall events:
+- Uploads `data-collector-falls.py` and timing heatmap
+- Runs sensor calibration
+- Sets up systemd service
+
+### Switching Modes
+
+Only one mode can be active at a time. Deploying a new mode automatically stops and replaces the previous one:
+
+1. Deploy `fall-collector` → collect fall data
+2. Deploy `adl-collector` → collect daily activity data
+3. Retrain model with new data
+4. Deploy `fall-detector` → back to production
+
+### Calibration
+
+During deployment, you'll be prompted to position the device:
+
+1. Place the device on a **flat, level surface**
+2. Keep it **completely stationary**
+3. Press ENTER to start calibration
+
+The calibration measures accelerometer bias and saves offsets to `mpu_offsets.json`.
+
+### Managing Services
+
+```bash
+# Check status
+ssh pi@<IP> 'systemctl status fall-detector'
+
+# View logs
+ssh pi@<IP> 'journalctl -u fall-detector -f'
+
+# Restart
+ssh pi@<IP> 'sudo systemctl restart fall-detector'
+
+# Stop
+ssh pi@<IP> 'sudo systemctl stop fall-detector'
+```
 
 ## Configuration Reference
 
