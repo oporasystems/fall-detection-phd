@@ -205,23 +205,12 @@ install_dependencies() {
     # Check and install Python packages one at a time
     echo "      Checking Python packages..."
 
-    # Function to get import name for a package
-    get_import_name() {
-        case "$1" in
-            "scikit-learn") echo "sklearn" ;;
-            "Adafruit-Blinka") echo "adafruit_blinka" ;;
-            "adafruit-circuitpython-bmp3xx") echo "adafruit_bmp3xx" ;;
-            "performer-pytorch") echo "performer_pytorch" ;;
-            *) echo "$1" ;;
-        esac
-    }
-
     # Order matters: torch before performer-pytorch
     local packages="pandas smbus numpy scikit-learn scipy RPi.GPIO board Adafruit-Blinka adafruit-circuitpython-bmp3xx torch performer-pytorch"
 
     for pkg in $packages; do
-        local import_name=$(get_import_name "$pkg")
-        if run_on_pi "python3 -c 'import $import_name' 2>/dev/null"; then
+        # Use pip show instead of python import (uses less memory)
+        if run_on_pi "pip show $pkg >/dev/null 2>&1"; then
             echo "        ✓ $pkg"
         else
             echo "        - Installing $pkg..."
