@@ -15,6 +15,19 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 DEPLOY_CONFIG="${SCRIPT_DIR}/.deploy-config"
 
+# Print ASCII banner
+print_banner() {
+    echo ""
+    echo -e "${BLUE}        \\O/${NC}"
+    echo -e "${BLUE}         |    /${NC}"
+    echo -e "${BLUE}        / \\  /${NC}"
+    echo -e "${BLUE}            /${NC}"
+    echo -e "${BLUE}       ~~~~~~~~~~~${NC}"
+    echo ""
+    echo -e "${GREEN}  FALL DETECTION SYSTEM${NC}"
+    echo ""
+}
+
 # Print colored status messages
 print_status() {
     echo -e "${BLUE}[$1]${NC} $2"

@@ -51,7 +51,7 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-echo ""
+print_banner
 echo "=== Fall Detection Logs ==="
 echo ""
 

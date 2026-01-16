@@ -6,7 +6,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/common.sh"
 
-echo ""
+print_banner
 echo "=== Fall Collector Redeploy ==="
 echo "Quick update: uploads files and restarts service"
 echo ""

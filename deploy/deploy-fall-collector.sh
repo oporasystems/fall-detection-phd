@@ -8,7 +8,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/common.sh"
 
-echo ""
+print_banner
 echo "=== Fall Data Collector Deployment ==="
 echo "Deploys data collection for fall events with timing heatmap"
 echo ""
