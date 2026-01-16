@@ -208,15 +208,21 @@ install_dependencies() {
     # Order matters: torch before performer-pytorch
     local packages="pandas smbus numpy scikit-learn scipy RPi.GPIO board Adafruit-Blinka adafruit-circuitpython-bmp3xx torch performer-pytorch"
 
+    # Create temp dir on main disk (default /tmp is RAM-based and too small)
+    run_on_pi "mkdir -p ~/pip-tmp"
+
     for pkg in $packages; do
         # Use pip show instead of python import (uses less memory)
         if run_on_pi "pip show $pkg >/dev/null 2>&1"; then
             echo "        ✓ $pkg (installed)"
         else
             echo "        ✗ $pkg (missing) - installing..."
-            run_on_pi "pip install --no-cache-dir $pkg --break-system-packages" || true
+            run_on_pi "TMPDIR=~/pip-tmp pip install --no-cache-dir $pkg --break-system-packages" || true
         fi
     done
+
+    # Clean up temp dir
+    run_on_pi "rm -rf ~/pip-tmp"
 
     print_success "Dependencies ready"
 }
