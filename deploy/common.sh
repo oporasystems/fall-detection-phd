@@ -15,41 +15,52 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 DEPLOY_CONFIG="${SCRIPT_DIR}/.deploy-config"
 
-# Print ASCII banner with falling animation
+# Print ASCII banner with running then falling animation
 print_banner() {
-    # Animation frames
-    local frames=(
-        "         O          \n        /|\\         \n        / \\    /    \n              /     \n       ~~~~~~~~~~~  "
-        "          \\O        \n           |\\       \n          / \\  /    \n              /     \n       ~~~~~~~~~~~  "
-        "           \\O/      \n            |   /   \n           / \\ /    \n              /     \n       ~~~~~~~~~~~  "
-        "            O__     \n           /|   /   \n           / \\  /    \n              /     \n       ~~~~~~~~~~~  "
-        "             _O/    \n            / |/    \n              /\\    \n             / /    \n       ~~~~~~~~~~~  "
-        "              O     \n             /|/    \n             /|     \n            / |     \n       ~~~~~~~~~~~  "
-        "             \\O/    \n              |     \n             /|\\    \n              |     \n       ~~~~~~~~~~~  "
-    )
+    local ground="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 
+    # Save cursor position and draw
     echo ""
+    tput sc  # Save cursor position
 
-    # Play animation
-    for frame in "${frames[@]}"; do
-        # Move cursor up 5 lines (or just print if first frame)
-        if [ "$frame" != "${frames[0]}" ]; then
-            echo -e "\033[5A"
-        fi
-        echo -e "${BLUE}${frame}${NC}"
-        sleep 0.15
+    # Run across the screen
+    for pos in 0 4 8 12 16 20; do
+        tput rc  # Restore cursor position
+        local pad=""
+        for ((i=0; i<pos; i++)); do pad+=" "; done
+        echo -e "${BLUE}${pad}  O                              ${NC}"
+        echo -e "${BLUE}${pad} /|\\                             ${NC}"
+        echo -e "${BLUE}${pad} / \\                             ${NC}"
+        echo -e "${BLUE}${ground}${NC}"
+        sleep 0.1
     done
 
-    # Final static frame
-    echo -e "\033[5A"
-    echo -e "${BLUE}        \\O/${NC}         "
-    echo -e "${BLUE}         |    /${NC}     "
-    echo -e "${BLUE}        / \\  /${NC}      "
-    echo -e "${BLUE}            /${NC}       "
-    echo -e "${BLUE}       ~~~~~~~~~~~${NC}  "
+    # Trip
+    tput rc
+    echo -e "${YELLOW}                          O/             ${NC}"
+    echo -e "${YELLOW}                         /|              ${NC}"
+    echo -e "${YELLOW}                         / \\             ${NC}"
+    echo -e "${BLUE}${ground}${NC}"
+    sleep 0.15
+
+    # Falling
+    tput rc
+    echo -e "${YELLOW}                           \\O            ${NC}"
+    echo -e "${YELLOW}                            |\\           ${NC}"
+    echo -e "${YELLOW}                           / \\           ${NC}"
+    echo -e "${BLUE}${ground}${NC}"
+    sleep 0.15
+
+    # Face down
+    tput rc
+    echo -e "${RED}                                          ${NC}"
+    echo -e "${RED}                          \\o____          ${NC}"
+    echo -e "${RED}                           |              ${NC}"
+    echo -e "${BLUE}${ground}${NC}"
+    sleep 0.4
 
     echo ""
-    echo -e "${GREEN}  FALL DETECTION SYSTEM${NC}"
+    echo -e "${GREEN}       FALL DETECTION SYSTEM${NC}"
     echo ""
 }
 
