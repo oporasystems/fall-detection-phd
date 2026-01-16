@@ -131,13 +131,15 @@ fall-detection-phd/
 │   ├── common.sh                   # Shared deployment functions
 │   ├── deploy-fall-detector.sh     # Deploy production fall detection
 │   ├── deploy-adl-collector.sh     # Deploy ADL data collector
-│   └── deploy-fall-collector.sh    # Deploy fall data collector
+│   ├── deploy-fall-collector.sh    # Deploy fall data collector
+│   └── logs.sh                     # View logs from Pi remotely
 ├── iot/
 │   ├── pi/
 │   │   ├── fall-detector.py        # Production fall detection (uses Performer)
 │   │   ├── data-collector-adl.py   # Collect ADL (daily activities) data
 │   │   ├── data-collector-falls.py # Collect fall data with timing heatmap
 │   │   ├── calibrate-mpu-6050.py   # Sensor calibration utility
+│   │   ├── logging_config.py       # Shared logging configuration
 │   │   └── debug/                  # Debugging utilities
 │   └── arduino/
 │       └── converter/              # TFLite model conversion
@@ -330,14 +332,29 @@ During deployment, you'll be prompted to position the device:
 
 The calibration measures accelerometer bias and saves offsets to `mpu_offsets.json`.
 
+### Viewing Logs
+
+Logs are stored in `~/logs/fall-detection.log` with daily rotation (30 days retention).
+
+```bash
+# View logs interactively
+./deploy/logs.sh
+
+# Follow logs in real-time
+./deploy/logs.sh -f
+
+# Show last 500 lines
+./deploy/logs.sh -n 500
+
+# Show logs from specific date
+./deploy/logs.sh -d 2024-01-15
+```
+
 ### Managing Services
 
 ```bash
 # Check status
 ssh pi@<IP> 'systemctl status fall-detector'
-
-# View logs
-ssh pi@<IP> 'journalctl -u fall-detector -f'
 
 # Restart
 ssh pi@<IP> 'sudo systemctl restart fall-detector'

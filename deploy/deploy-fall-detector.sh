@@ -28,6 +28,7 @@ install_dependencies
 # Upload files
 print_status "3/6" "Uploading files..."
 upload_file "${PROJECT_ROOT}/iot/pi/fall-detector.py"
+upload_file "${PROJECT_ROOT}/iot/pi/logging_config.py"
 upload_file "${PROJECT_ROOT}/training/variations/performer/performer_model.pt"
 
 # Run calibration

@@ -28,6 +28,7 @@ install_dependencies
 # Upload files
 print_status "3/6" "Uploading files..."
 upload_file "${PROJECT_ROOT}/iot/pi/data-collector-falls.py"
+upload_file "${PROJECT_ROOT}/iot/pi/logging_config.py"
 
 # Upload heatmap if it exists
 HEATMAP_FILE="${PROJECT_ROOT}/dataset/visualisation/heatmap_array.json"

@@ -14,6 +14,11 @@ import busio
 import adafruit_bmp3xx
 import threading
 import requests
+import uuid
+from logging_config import setup_logging
+
+# Set up logging
+logger = setup_logging("fall-collector")
 
 # Define GPIO pin for the buzzer
 buzzer_pin = 23
@@ -155,7 +160,7 @@ def initialize_mpu(accel_range):
 def load_offsets(filename):
     with open(filename, 'r') as f:
         offsets = json.load(f)
-    print(f"Offsets loaded from {filename}")
+    logger.info(f"Offsets loaded from {filename}")
     return offsets["acc_x_offset"], offsets["acc_y_offset"], offsets["acc_z_offset"]
 
 
@@ -171,15 +176,15 @@ def load_heatmap_array(json_path='/home/ivanursul/heatmap_array.json'):
         # Convert the list back to a NumPy array
         heatmap_array = np.array(heatmap_list)
 
-        print("Heatmap array loaded successfully.")
+        logger.info("Heatmap array loaded successfully.")
         return heatmap_array
 
     except FileNotFoundError:
-        print(f"File not found: {json_path}")
+        logger.error(f"File not found: {json_path}")
     except json.JSONDecodeError:
-        print("Error decoding JSON. Please ensure the file is in valid JSON format.")
+        logger.error("Error decoding JSON. Please ensure the file is in valid JSON format.")
     except Exception as e:
-        print(f"An error occurred: {e}")
+        logger.error(f"An error occurred: {e}")
 
     # Return an empty NumPy array if any error occurs
     return np.empty((0, 8, 10))
@@ -198,7 +203,7 @@ def dump_heatmap_array(json_path='/home/ivanursul/heatmap_array.json'):
     end_time = time.time()
     elapsed_time = end_time - start_time
 
-    print(f"Time taken to save the file: {elapsed_time:.4f} seconds")
+    logger.info(f"Time taken to save the file: {elapsed_time:.4f} seconds")
 
 
 def find_lowest_value_in_heatmap():
@@ -211,8 +216,8 @@ def find_lowest_value_in_heatmap():
         index = (second * 100) + (millisecond / 10)
         formatted_time = f"{second}.{millisecond:03d}"
 
-        print("Heatmap array is empty. Using random default values.")
-        print(f"second={second}, millisecond={millisecond}, index={index}, formatted_time={formatted_time}")
+        logger.warning("Heatmap array is empty. Using random default values.")
+        logger.info(f"second={second}, millisecond={millisecond}, index={index}, formatted_time={formatted_time}")
 
         return {
             'lowest_value': 0,
@@ -239,7 +244,7 @@ def find_lowest_value_in_heatmap():
     index = (second * 100) + (millisecond / 10)
     formatted_time = f"{second}.{millisecond:03d}"
 
-    print(f"min_position={min_position}, second={second}, millisecond={millisecond}, index={index}, formatted_time={formatted_time}")
+    logger.info(f"min_position={min_position}, second={second}, millisecond={millisecond}, index={index}, formatted_time={formatted_time}")
 
     # Return the lowest value and its position as a dictionary
     return {
@@ -428,7 +433,7 @@ def butter_lowpass_filter(data, cutoff, fs, order=5):
 
     if len(data) < padlen:
         # If the data is too short, skip filtering or use an alternative filter
-        print(f"Segment too short for filtfilt (length: {len(data)}), using original data")
+        logger.warning(f"Segment too short for filtfilt (length: {len(data)}), using original data")
         return data  # Optionally, apply a simple moving average filter here instead
 
     nyquist = 0.5 * fs
@@ -439,7 +444,7 @@ def butter_lowpass_filter(data, cutoff, fs, order=5):
         # Attempt to apply filtfilt, ensuring padlen condition is met
         y = filtfilt(b, a, data)
     except ValueError as e:
-        print(f"Error during filtering: {e}")
+        logger.error(f"Error during filtering: {e}")
         return data  # Return the original data in case of any errors
 
     return y
@@ -563,7 +568,7 @@ def sleep(seconds, frequency_hz):
             flip_alert_property()
             time.sleep(1)
 
-    print(f"Finished sleeping for {seconds} seconds")
+    logger.debug(f"Finished sleeping for {seconds} seconds")
 
 
 def flip_collect_property():
@@ -571,9 +576,9 @@ def flip_collect_property():
     collection_of_data_enabled = not collection_of_data_enabled
 
     if collection_of_data_enabled:
-        print("Collection of data was enabled")
+        logger.info("Collection of data was enabled")
     else:
-        print("Collection of data was disabled")
+        logger.info("Collection of data was disabled")
 
     play_alarm(beep_count=3, beep_duration=0.2, pause_duration=0.2)
 
@@ -583,10 +588,10 @@ def flip_alert_property():
     alert_on = not alert_on
 
     if alert_on:
-        print("Alert buzzer is on")
+        logger.info("Alert buzzer is on")
         play_alarm(beep_count=5, beep_duration=0.2, pause_duration=0.2)
     else:
-        print("Alert buzzer is off")
+        logger.info("Alert buzzer is off")
 
 
 def add_high_magnitude_counts(data_records):
@@ -614,12 +619,12 @@ def add_high_magnitude_counts(data_records):
 
         # Check if file_data has any high magnitude counts (values > 0)
         if np.any(file_data > 0):
-            print(f"Processed file_data with high magnitude counts, shape {file_data.shape}:")
-            print(file_data)
+            logger.info(f"Processed file_data with high magnitude counts, shape {file_data.shape}:")
+            logger.debug(file_data)
             heatmap_array = np.vstack([heatmap_array, file_data[np.newaxis, ...]])
-            print(f"Updated heatmap_array shape: {heatmap_array.shape}")
+            logger.info(f"Updated heatmap_array shape: {heatmap_array.shape}")
         else:
-            print("No high magnitude counts found in file_data. Skipping addition to heatmap_array.")
+            logger.info("No high magnitude counts found in file_data. Skipping addition to heatmap_array.")
 
     else:
         raise ValueError("DataFrame is missing required columns: 'AccX', 'AccY', 'AccZ', 'Magnitude'")
@@ -629,7 +634,7 @@ def collect():
     global collection_of_data_enabled, bmp
 
     if collection_of_data_enabled:
-        print("Iteration started")
+        logger.info("Iteration started")
         lowest_value = find_lowest_value_in_heatmap()
         index_of_interest = lowest_value['index']
 
@@ -638,7 +643,7 @@ def collect():
         data_records = collect_interval_records(index_of_interest)
 
         if not collection_of_data_enabled:
-            print("Collection of data was disabled, skipping")
+            logger.info("Collection of data was disabled, skipping")
             return
 
         filtered_data = filter_data(data_records)
@@ -662,10 +667,10 @@ def collect():
 def save_csv(filtered_data):
     global collection_of_data_enabled
     if not collection_of_data_enabled:
-        print("Collection of data was disabled, skipping")
+        logger.info("Collection of data was disabled, skipping")
         return
 
-    print("Started saving csv")
+    logger.info("Started saving csv")
     # Define the main folder path
     base_folder_path = '/home/ivanursul/accelerometer_data_raw'
     # Generate the date-based subfolder name
@@ -676,13 +681,16 @@ def save_csv(filtered_data):
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
 
-    # Generate a unique filename with timestamp
+    # Generate a unique filename with timestamp and salt
     timestamp = time.strftime("%Y%m%d_%H%M%S")
-    filename = f"accelerometer_data_{timestamp}.csv"
+    salt = uuid.uuid4().hex[:8]  # Generate an 8-character unique salt
+    filename = f"accelerometer_data_{timestamp}_{salt}.csv"
     file_path = os.path.join(folder_path, filename)
 
-    # Convert the data_records to a DataFrame for saving to CSV
+    # Save the filtered data to the CSV file
     filtered_data.to_csv(file_path, index=False)
+
+    logger.info(f"Data successfully saved to {file_path}")
 
 
 def collect_interval_records(index_of_interest):
@@ -692,11 +700,11 @@ def collect_interval_records(index_of_interest):
         columns=['AccX', 'AccY', 'AccZ', 'Magnitude', 'GyroX', 'GyroY', 'GyroZ', 'Temperature', 'Altitude']
     )
 
-    print(f"Index of interest: {index_of_interest}")
+    logger.info(f"Index of interest: {index_of_interest}")
 
     # Check if the index_of_interest is less than 100, beep and apply delay
     if index_of_interest < 50:
-        print(f"Warning: Approaching index of interest for the first second: {index_of_interest}")
+        logger.warning(f"Approaching index of interest for the first second: {index_of_interest}")
         #play_alarm(4, beep_duration=0.02, pause_duration=0.03)
         # Calculate and apply the delay
         delay = 0.7 + (index_of_interest * 0.01)  # 500 ms + index_of_interest * 10 ms
@@ -711,7 +719,7 @@ def collect_interval_records(index_of_interest):
 
         # Beep if approaching index_of_interest within the loop
         if i == max(0, index_of_interest - 100) and 0 <= index_of_interest <= 800:
-            print(f"Warning: Approaching index of interest: {index_of_interest}")
+            logger.warning(f"Approaching index of interest: {index_of_interest}")
             play_one_beep(beep_duration=0.02)
 
         # # Check if index_of_interest is greater than 900 and beep 200 records before
@@ -744,7 +752,7 @@ def collect_interval_records(index_of_interest):
     # Measure total execution time
     total_time = time.time() - start_time
 
-    print(f"Total execution time: {total_time:.6f} seconds")
+    logger.info(f"Total execution time: {total_time:.6f} seconds")
 
     return data_records
 

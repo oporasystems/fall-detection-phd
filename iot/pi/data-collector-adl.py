@@ -13,6 +13,11 @@ import busio
 import adafruit_bmp3xx
 import threading
 import requests
+import uuid
+from logging_config import setup_logging
+
+# Set up logging
+logger = setup_logging("adl-collector")
 
 # Define GPIO pin for the buzzer
 buzzer_pin = 23
@@ -157,7 +162,7 @@ def initialize_mpu(accel_range):
 def load_offsets(filename):
     with open(filename, 'r') as f:
         offsets = json.load(f)
-    print(f"Offsets loaded from {filename}")
+    logger.info(f"Offsets loaded from {filename}")
     return offsets["acc_x_offset"], offsets["acc_y_offset"], offsets["acc_z_offset"]
 
 
@@ -340,7 +345,7 @@ def butter_lowpass_filter(data, cutoff, fs, order=5):
 
     if len(data) < padlen:
         # If the data is too short, skip filtering or use an alternative filter
-        print(f"Segment too short for filtfilt (length: {len(data)}), using original data")
+        logger.warning(f"Segment too short for filtfilt (length: {len(data)}), using original data")
         return data  # Optionally, apply a simple moving average filter here instead
 
     nyquist = 0.5 * fs
@@ -351,7 +356,7 @@ def butter_lowpass_filter(data, cutoff, fs, order=5):
         # Attempt to apply filtfilt, ensuring padlen condition is met
         y = filtfilt(b, a, data)
     except ValueError as e:
-        print(f"Error during filtering: {e}")
+        logger.error(f"Error during filtering: {e}")
         return data  # Return the original data in case of any errors
 
     return y
@@ -463,7 +468,7 @@ def sleep(seconds, frequency_hz):
             flip_alert_property()
             time.sleep(1)
 
-    print(f"Finished sleeping for {seconds} seconds")
+    logger.debug(f"Finished sleeping for {seconds} seconds")
 
 
 def flip_collect_property():
@@ -471,9 +476,9 @@ def flip_collect_property():
     collection_of_data_enabled = not collection_of_data_enabled
 
     if collection_of_data_enabled:
-        print("Collection of data was enabled")
+        logger.info("Collection of data was enabled")
     else:
-        print("Collection of data was disabled")
+        logger.info("Collection of data was disabled")
 
     play_alarm(beep_count=3, beep_duration=0.2, pause_duration=0.2)
 
@@ -483,22 +488,22 @@ def flip_alert_property():
     alert_on = not alert_on
 
     if alert_on:
-        print("Alert buzzer is on")
+        logger.info("Alert buzzer is on")
         play_alarm(beep_count=5, beep_duration=0.2, pause_duration=0.2)
     else:
-        print("Alert buzzer is off")
+        logger.info("Alert buzzer is off")
 
 
 def collect():
     global collection_of_data_enabled, bmp
 
     if collection_of_data_enabled:
-        print("Iteration started")
+        logger.info("Iteration started")
         #play_alarm(beep_count=1, beep_duration=0.2, pause_duration=0.2)
         data_records = collect_interval_records()
 
         if not collection_of_data_enabled:
-            print("Collection of data was disabled, skipping")
+            logger.info("Collection of data was disabled, skipping")
             return
 
         filtered_data = filter_data(data_records)
@@ -518,10 +523,10 @@ def collect():
 def save_csv(filtered_data):
     global collection_of_data_enabled
     if not collection_of_data_enabled:
-        print("Collection of data was disabled, skipping")
+        logger.info("Collection of data was disabled, skipping")
         return
 
-    print("Started saving csv")
+    logger.info("Started saving csv")
     # Define the main folder path
     base_folder_path = '/home/ivanursul/accelerometer_data_raw'
     # Generate the date-based subfolder name
@@ -532,13 +537,16 @@ def save_csv(filtered_data):
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
 
-    # Generate a unique filename with timestamp
+    # Generate a unique filename with timestamp and salt
     timestamp = time.strftime("%Y%m%d_%H%M%S")
-    filename = f"accelerometer_data_{timestamp}.csv"
+    salt = uuid.uuid4().hex[:8]  # Generate an 8-character unique salt
+    filename = f"accelerometer_data_{timestamp}_{salt}.csv"
     file_path = os.path.join(folder_path, filename)
 
-    # Convert the data_records to a DataFrame for saving to CSV
+    # Save the filtered data to the CSV file
     filtered_data.to_csv(file_path, index=False)
+
+    logger.info(f"Data successfully saved to {file_path}")
 
 
 def collect_interval_records():
@@ -578,7 +586,7 @@ def collect_interval_records():
     # Measure total execution time
     total_time = time.time() - start_time
 
-    print(f"Total execution time: {total_time:.6f} seconds")
+    logger.info(f"Total execution time: {total_time:.6f} seconds")
 
     return data_records
 

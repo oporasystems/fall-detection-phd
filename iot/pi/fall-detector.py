@@ -13,6 +13,10 @@ import numpy as np
 import json
 from scipy.signal import butter, filtfilt
 import RPi.GPIO as GPIO
+from logging_config import setup_logging
+
+# Set up logging
+logger = setup_logging("fall-detector")
 
 # Create a new Mpu6050 object
 device = torch.device('cpu')
@@ -123,7 +127,7 @@ def initialize_mpu(accel_range):
 def load_offsets(filename):
     with open(filename, 'r') as f:
         offsets = json.load(f)
-    print(f"Offsets loaded from {filename}")
+    logger.info(f"Offsets loaded from {filename}")
     return offsets["acc_x_offset"], offsets["acc_y_offset"], offsets["acc_z_offset"]
 
 
@@ -287,7 +291,7 @@ def butter_lowpass_filter(data, cutoff, fs, order=5):
 
     if len(data) < padlen:
         # If the data is too short, skip filtering or use an alternative filter
-        print(f"Segment too short for filtfilt (length: {len(data)}), using original data")
+        logger.warning(f"Segment too short for filtfilt (length: {len(data)}), using original data")
         return data  # Optionally, apply a simple moving average filter here instead
 
     nyquist = 0.5 * fs
@@ -298,7 +302,7 @@ def butter_lowpass_filter(data, cutoff, fs, order=5):
         # Attempt to apply filtfilt, ensuring padlen condition is met
         y = filtfilt(b, a, data)
     except ValueError as e:
-        print(f"Error during filtering: {e}")
+        logger.error(f"Error during filtering: {e}")
         return data  # Return the original data in case of any errors
 
     return y
@@ -386,7 +390,7 @@ def collect_and_check_falls():
     # Convert data_records into a torch tensor
     data_tensor = torch.tensor(scaled_data, dtype=torch.float32).unsqueeze(0)
     # Print the tensor shape and the collection time
-    print(f"Collected data tensor shape: {data_tensor.shape}")
+    logger.info(f"Collected data tensor shape: {data_tensor.shape}")
 
     start_time = time.time()
     batch_data = data_tensor.to(device)
@@ -397,13 +401,14 @@ def collect_and_check_falls():
         # _, predicted = torch.max(outputs, 1)  # Get the predicted class
         predicted_class = torch.argmax(output, dim=1).item()
 
-    print(f"Classification Output: {predicted_class}")
+    logger.info(f"Classification Output: {predicted_class}")
 
     end_time = time.time()
     collection_time = end_time - start_time
-    print(f"Time to check if there was a fall: {collection_time:.4f} seconds")
+    logger.info(f"Time to check if there was a fall: {collection_time:.4f} seconds")
 
     if predicted_class == 1:
+        logger.warning("FALL DETECTED! Triggering alarm.")
         play_alarm(beep_count=3, beep_duration=0.2, pause_duration=0.2)
         save_csv(filtered_data)
 
@@ -451,7 +456,7 @@ def collect_interval_records():
     # Measure total execution time
     total_time = time.time() - start_time
 
-    print(f"Total execution time: {total_time:.6f} seconds")
+    logger.info(f"Total execution time: {total_time:.6f} seconds")
 
     return data_records
 
