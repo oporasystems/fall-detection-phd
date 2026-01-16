@@ -102,3 +102,9 @@ docs/_build/
 # Linux
 *~
 
+# Large binary files
+*.zip
+
+# Local config overrides
+config.local.yaml
+

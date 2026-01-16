@@ -1,0 +1,18 @@
+# Local Configuration Overrides
+# Copy this file to config.local.yaml and customize for your environment
+# config.local.yaml is gitignored and won't be committed
+
+# Override dataset paths for your local machine
+dataset:
+  fall_folder: "/path/to/your/Fall/dataset"
+  non_fall_folder: "/path/to/your/ADL/dataset"
+
+# Example for Windows:
+# dataset:
+#   fall_folder: "C:\\Users\\YourName\\Downloads\\Sensor Data\\Fall"
+#   non_fall_folder: "C:\\Users\\YourName\\Downloads\\Sensor Data\\ADL"
+
+# Example for macOS/Linux:
+# dataset:
+#   fall_folder: "/home/username/datasets/fall-detection/Fall"
+#   non_fall_folder: "/home/username/datasets/fall-detection/ADL"

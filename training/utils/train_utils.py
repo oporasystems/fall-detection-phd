@@ -8,30 +8,6 @@ from training.utils.logging_utils import create_logger
 logger = create_logger()
 
 
-def train_model(device, model, train_loader, criterion, optimizer, epochs):
-    global labels
-    for epoch in range(epochs):
-        model.train()
-        running_loss = 0.0
-        correct = 0
-        total = 0
-
-        for inputs, labels in train_loader:
-            inputs, labels = inputs.to(device), labels.to(device)
-            optimizer.zero_grad()
-            outputs = model(inputs)
-            loss = criterion(outputs, labels)
-            loss.backward()
-            optimizer.step()
-
-            running_loss += loss.item()
-            _, predicted = torch.max(outputs, 1)
-            total += labels.size(0)
-            correct += (predicted == labels).sum().item()
-
-        train_acc = 100 * correct / total
-        logger.info(f'Epoch {epoch + 1}/{epochs}, Loss: {running_loss:.4f}, Train Accuracy: {train_acc:.2f}%')
-
 def train_model_optuna(device, criterion, model, optimizer, train_loader, trial, val_loader):
     # Training loop
     num_epochs = 10  # Fewer epochs for hyperparameter optimization

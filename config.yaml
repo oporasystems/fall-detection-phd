@@ -1,0 +1,34 @@
+# Fall Detection Project Configuration
+# Override settings in config.local.yaml (not committed to git)
+
+# Dataset paths for training
+dataset:
+  fall_folder: "./data/Fall"
+  non_fall_folder: "./data/ADL"
+
+# Raspberry Pi deployment paths
+raspberry_pi:
+  model_path: "/home/ivanursul/performer_model.pt"
+  offsets_path: "/home/ivanursul/mpu_offsets.json"
+  heatmap_path: "/home/ivanursul/heatmap_array.json"
+  data_output_path: "/home/ivanursul/accelerometer_data_raw"
+
+# Model constants (shared across all architectures)
+model:
+  max_sequence_length: 800
+  input_dim: 4  # AccX, AccY, AccZ, Magnitude
+  num_classes: 2  # Fall, Non-Fall
+  csv_columns:
+    - "AccX_filtered_i"
+    - "AccY_filtered_i"
+    - "Corrected_AccZ_i"
+    - "Acc_magnitude_i"
+
+# Hardware configuration
+hardware:
+  sampling_rate: 100  # Hz
+  accel_range: 16  # g
+  mpu6050_address: 0x68
+  buzzer_pin: 23
+  button_pin_1: 24
+  button_pin_2: 25
