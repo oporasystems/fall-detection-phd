@@ -160,9 +160,28 @@ copy_to_pi() {
     sshpass -p "$PI_PASS" scp -o StrictHostKeyChecking=no "$src" "${PI_USER}@${PI_HOST}:${dest}"
 }
 
+# Setup swap space on Pi for installing heavy packages like torch
+setup_swap() {
+    print_status "2/6" "Checking swap space..."
+
+    # Check current swap size
+    local swap_size=$(run_on_pi "grep CONF_SWAPSIZE /etc/dphys-swapfile | cut -d= -f2")
+
+    if [ "$swap_size" -lt 1024 ] 2>/dev/null; then
+        echo "      Current swap: ${swap_size}MB - increasing to 1024MB..."
+        run_on_pi "sudo dphys-swapfile swapoff"
+        run_on_pi "sudo sed -i 's/CONF_SWAPSIZE=.*/CONF_SWAPSIZE=1024/' /etc/dphys-swapfile"
+        run_on_pi "sudo dphys-swapfile setup"
+        run_on_pi "sudo dphys-swapfile swapon"
+        print_success "Swap increased to 1024MB"
+    else
+        echo "      Swap already configured: ${swap_size}MB"
+    fi
+}
+
 # Install dependencies on Pi (only if not already installed)
 install_dependencies() {
-    print_status "2/6" "Checking dependencies..."
+    print_status "3/7" "Checking dependencies..."
 
     # Check if i2c-tools is installed
     if ! run_on_pi "dpkg -s i2c-tools > /dev/null 2>&1"; then
@@ -213,7 +232,7 @@ upload_file() {
 
 # Run calibration on Pi
 run_calibration() {
-    print_status "4/6" "Running sensor calibration..."
+    print_status "5/7" "Running sensor calibration..."
     echo ""
     print_warning "Place the device on a flat, level surface"
     print_warning "Keep it completely stationary during calibration"
@@ -231,7 +250,7 @@ run_calibration() {
 
 # Stop and remove any existing fall-detection services
 remove_existing_services() {
-    print_status "5/6" "Setting up systemd service..."
+    print_status "6/7" "Setting up systemd service..."
 
     for service in fall-detector adl-collector fall-collector; do
         if run_on_pi "systemctl list-unit-files | grep -q ${service}.service" 2>/dev/null; then
@@ -277,7 +296,7 @@ WantedBy=multi-user.target"
 prompt_start_service() {
     local service_name="$1"
 
-    print_status "6/6" "Deployment complete!"
+    print_status "7/7" "Deployment complete!"
     echo ""
     read -p "Start the service now? [Y/n]: " start_now
     start_now=${start_now:-Y}

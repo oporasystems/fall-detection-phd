@@ -22,11 +22,14 @@ get_connection_info
 # Test connection
 test_connection
 
+# Setup swap for heavy packages
+setup_swap
+
 # Install dependencies
 install_dependencies
 
 # Upload files
-print_status "3/6" "Uploading files..."
+print_status "4/7" "Uploading files..."
 upload_file "${PROJECT_ROOT}/iot/pi/data-collector-falls.py"
 upload_file "${PROJECT_ROOT}/iot/pi/logging_config.py"
 
