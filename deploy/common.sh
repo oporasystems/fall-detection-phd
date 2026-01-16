@@ -124,28 +124,36 @@ install_dependencies() {
         echo "      System packages already installed"
     fi
 
-    # Check if Python packages are installed by testing a key import
-    if ! run_on_pi "python3 -c 'import torch; import performer_pytorch' 2>/dev/null"; then
-        echo "      Installing Python packages (this may take a while on first run)..."
-        echo "      Note: Installing one at a time to avoid out-of-memory on Pi"
+    # Check and install Python packages one at a time
+    echo "      Checking Python packages..."
 
-        # Install packages one at a time with --no-cache-dir to save memory
-        local packages="pandas smbus numpy scikit-learn scipy RPi.GPIO board Adafruit-Blinka adafruit-circuitpython-bmp3xx"
-        for pkg in $packages; do
-            echo "        - $pkg"
+    # Package name -> import name mapping (most are the same)
+    declare -A pkg_imports=(
+        ["pandas"]="pandas"
+        ["smbus"]="smbus"
+        ["numpy"]="numpy"
+        ["scikit-learn"]="sklearn"
+        ["scipy"]="scipy"
+        ["RPi.GPIO"]="RPi.GPIO"
+        ["board"]="board"
+        ["Adafruit-Blinka"]="adafruit_blinka"
+        ["adafruit-circuitpython-bmp3xx"]="adafruit_bmp3xx"
+        ["torch"]="torch"
+        ["performer-pytorch"]="performer_pytorch"
+    )
+
+    # Order matters: torch before performer-pytorch
+    local packages="pandas smbus numpy scikit-learn scipy RPi.GPIO board Adafruit-Blinka adafruit-circuitpython-bmp3xx torch performer-pytorch"
+
+    for pkg in $packages; do
+        local import_name="${pkg_imports[$pkg]}"
+        if run_on_pi "python3 -c 'import $import_name' 2>/dev/null"; then
+            echo "        ✓ $pkg"
+        else
+            echo "        - Installing $pkg..."
             run_on_pi "pip install --quiet --no-cache-dir $pkg --break-system-packages 2>/dev/null || pip install --quiet --no-cache-dir $pkg" || true
-        done
-
-        # Install torch separately (heaviest package)
-        echo "        - torch (this one takes longest)"
-        run_on_pi "pip install --quiet --no-cache-dir torch --break-system-packages 2>/dev/null || pip install --quiet --no-cache-dir torch" || true
-
-        # Install performer-pytorch last (depends on torch)
-        echo "        - performer-pytorch"
-        run_on_pi "pip install --quiet --no-cache-dir performer-pytorch --break-system-packages 2>/dev/null || pip install --quiet --no-cache-dir performer-pytorch" || true
-    else
-        echo "      Python packages already installed"
-    fi
+        fi
+    done
 
     print_success "Dependencies ready"
 }
