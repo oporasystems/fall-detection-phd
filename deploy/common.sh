@@ -214,7 +214,7 @@ install_dependencies() {
             echo "        ✓ $pkg (installed)"
         else
             echo "        ✗ $pkg (missing) - installing..."
-            run_on_pi "pip install --quiet --no-cache-dir $pkg --break-system-packages 2>/dev/null || pip install --quiet --no-cache-dir $pkg" || true
+            run_on_pi "pip install --no-cache-dir $pkg --break-system-packages" || true
         fi
     done
 
