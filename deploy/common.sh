@@ -150,7 +150,7 @@ test_connection() {
 
 # Run command on Pi via SSH
 run_on_pi() {
-    sshpass -p "$PI_PASS" ssh -o StrictHostKeyChecking=no "${PI_USER}@${PI_HOST}" "$1"
+    sshpass -p "$PI_PASS" ssh -o StrictHostKeyChecking=no -o ServerAliveInterval=60 -o ServerAliveCountMax=10 "${PI_USER}@${PI_HOST}" "$1"
 }
 
 # Copy file to Pi via SCP
@@ -167,17 +167,21 @@ setup_swap() {
     # Check current swap in MB
     local swap_total=$(run_on_pi "free -m | grep Swap | awk '{print \$2}'")
 
-    if [ "$swap_total" -lt 1024 ] 2>/dev/null; then
-        echo "      Current swap: ${swap_total}MB - creating 1GB swap file..."
+    if [ "$swap_total" -lt 512 ] 2>/dev/null; then
+        echo "      Current swap: ${swap_total}MB - creating swap file..."
 
         # Create swap file if it doesn't exist
         if ! run_on_pi "test -f /swapfile"; then
-            run_on_pi "sudo fallocate -l 1G /swapfile || sudo dd if=/dev/zero of=/swapfile bs=1M count=1024"
+            echo "      Allocating 1GB (this may take a minute)..."
+            run_on_pi "sudo fallocate -l 1G /swapfile 2>/dev/null || sudo dd if=/dev/zero of=/swapfile bs=1M count=1024 status=progress"
+            echo "      Setting permissions..."
             run_on_pi "sudo chmod 600 /swapfile"
+            echo "      Formatting swap..."
             run_on_pi "sudo mkswap /swapfile"
         fi
 
         # Enable swap
+        echo "      Enabling swap..."
         run_on_pi "sudo swapon /swapfile 2>/dev/null || true"
 
         # Make permanent
