@@ -162,20 +162,30 @@ copy_to_pi() {
 
 # Setup swap space on Pi for installing heavy packages like torch
 setup_swap() {
-    print_status "2/6" "Checking swap space..."
+    print_status "2/7" "Checking swap space..."
 
-    # Check current swap size
-    local swap_size=$(run_on_pi "grep CONF_SWAPSIZE /etc/dphys-swapfile | cut -d= -f2")
+    # Check current swap in MB
+    local swap_total=$(run_on_pi "free -m | grep Swap | awk '{print \$2}'")
 
-    if [ "$swap_size" -lt 1024 ] 2>/dev/null; then
-        echo "      Current swap: ${swap_size}MB - increasing to 1024MB..."
-        run_on_pi "sudo dphys-swapfile swapoff"
-        run_on_pi "sudo sed -i 's/CONF_SWAPSIZE=.*/CONF_SWAPSIZE=1024/' /etc/dphys-swapfile"
-        run_on_pi "sudo dphys-swapfile setup"
-        run_on_pi "sudo dphys-swapfile swapon"
-        print_success "Swap increased to 1024MB"
+    if [ "$swap_total" -lt 1024 ] 2>/dev/null; then
+        echo "      Current swap: ${swap_total}MB - creating 1GB swap file..."
+
+        # Create swap file if it doesn't exist
+        if ! run_on_pi "test -f /swapfile"; then
+            run_on_pi "sudo fallocate -l 1G /swapfile || sudo dd if=/dev/zero of=/swapfile bs=1M count=1024"
+            run_on_pi "sudo chmod 600 /swapfile"
+            run_on_pi "sudo mkswap /swapfile"
+        fi
+
+        # Enable swap
+        run_on_pi "sudo swapon /swapfile 2>/dev/null || true"
+
+        # Make permanent
+        run_on_pi "grep -q '/swapfile' /etc/fstab || echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab > /dev/null"
+
+        print_success "Swap configured (1GB)"
     else
-        echo "      Swap already configured: ${swap_size}MB"
+        echo "      Swap already sufficient: ${swap_total}MB"
     fi
 }
 
