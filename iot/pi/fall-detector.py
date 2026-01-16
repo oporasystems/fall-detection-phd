@@ -54,7 +54,8 @@ class PerformerModel(nn.Module):
             dim_head=hidden_dim // num_heads,  # Dimension of each attention head
             causal=False,            # Set to True if you want causal self-attention
             ff_dropout=dropout,      # Feed-forward dropout
-            attn_dropout=dropout     # Attention dropout
+            attn_dropout=dropout,    # Attention dropout
+            nb_features=64           # Must match trained model
         )
 
         self.fc = nn.Linear(hidden_dim, num_classes)
