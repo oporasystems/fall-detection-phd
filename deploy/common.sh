@@ -290,7 +290,10 @@ After=network.target
 ExecStart=/usr/bin/python3 /home/${PI_USER}/${script_name}
 Restart=always
 WorkingDirectory=/home/${PI_USER}
+User=${PI_USER}
 Environment=\"PYTHONUNBUFFERED=1\"
+Environment=\"PATH=/home/${PI_USER}/.local/bin:/usr/local/bin:/usr/bin:/bin\"
+Environment=\"PYTHONPATH=/home/${PI_USER}/.local/lib/python3.13/site-packages\"
 
 [Install]
 WantedBy=multi-user.target"
