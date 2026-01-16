@@ -107,15 +107,9 @@ get_connection_info() {
 
     # Try to load existing config
     if load_config; then
-        echo "Found saved credentials for ${PI_USER}@${PI_HOST}"
-        read -p "Use saved credentials? [Y/n]: " use_saved
-        use_saved=${use_saved:-Y}
-
-        if [[ "$use_saved" =~ ^[Yy]$ ]]; then
-            echo ""
-            return
-        fi
+        echo "Using saved credentials: ${PI_USER}@${PI_HOST}"
         echo ""
+        return
     fi
 
     # Prompt for new credentials
