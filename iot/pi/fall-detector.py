@@ -346,6 +346,9 @@ def filter_data(df):
 
 scaler = StandardScaler()
 
+# Cycle counter for logging
+cycle_count = 0
+
 
 def play_alarm(beep_count=5, beep_duration=0.2, pause_duration=0.1):
     """
@@ -382,15 +385,19 @@ def signal_app_start(beep_count=3, beep_duration=0.1, pause_duration=0.05):
 
 
 def collect_and_check_falls():
+    global cycle_count
+    cycle_count += 1
+
     data_records = collect_interval_records()
+
+    # Get max magnitude before filtering
+    max_magnitude = data_records['Magnitude'].max()
 
     filtered_data = filter_data(data_records)
     extracted_data = filtered_data[['acc_x_filtered', 'acc_y_filtered', 'acc_z_filtered', 'acc_magnitude_filtered']]
     scaled_data = scaler.fit_transform(extracted_data)
     # Convert data_records into a torch tensor
     data_tensor = torch.tensor(scaled_data, dtype=torch.float32).unsqueeze(0)
-    # Print the tensor shape and the collection time
-    logger.info(f"Collected data tensor shape: {data_tensor.shape}")
 
     start_time = time.time()
     batch_data = data_tensor.to(device)
@@ -398,14 +405,13 @@ def collect_and_check_falls():
     # Get model predictions
     with torch.no_grad():
         output = model(batch_data)
-        # _, predicted = torch.max(outputs, 1)  # Get the predicted class
         predicted_class = torch.argmax(output, dim=1).item()
 
-    logger.info(f"Classification Output: {predicted_class}")
+    inference_time_ms = (time.time() - start_time) * 1000
+    result = "FALL" if predicted_class == 1 else "ADL"
 
-    end_time = time.time()
-    collection_time = end_time - start_time
-    logger.info(f"Time to check if there was a fall: {collection_time:.4f} seconds")
+    # Consolidated cycle summary log
+    logger.info(f"Cycle {cycle_count}: {result} | inference: {inference_time_ms:.1f}ms | max_accel: {max_magnitude:.2f}g")
 
     if predicted_class == 1:
         logger.warning("FALL DETECTED! Triggering alarm.")
@@ -452,11 +458,6 @@ def collect_interval_records():
 
         if sleep_time > 0:
             time.sleep(sleep_time)
-
-    # Measure total execution time
-    total_time = time.time() - start_time
-
-    logger.info(f"Total execution time: {total_time:.6f} seconds")
 
     return data_records
 
