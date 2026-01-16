@@ -108,3 +108,6 @@ docs/_build/
 # Local config overrides
 config.local.yaml
 
+# Deployment credentials (contains passwords)
+deploy/.deploy-config
+

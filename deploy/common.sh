@@ -13,6 +13,7 @@ NC='\033[0m' # No Color
 # Get the directory where this script is located
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+DEPLOY_CONFIG="${SCRIPT_DIR}/.deploy-config"
 
 # Print colored status messages
 print_status() {
@@ -31,14 +32,58 @@ print_error() {
     echo -e "${RED}✗${NC} $1"
 }
 
+# Load saved connection details
+load_config() {
+    if [ -f "$DEPLOY_CONFIG" ]; then
+        source "$DEPLOY_CONFIG"
+        return 0
+    fi
+    return 1
+}
+
+# Save connection details
+save_config() {
+    cat > "$DEPLOY_CONFIG" << EOF
+PI_HOST="$PI_HOST"
+PI_USER="$PI_USER"
+PI_PASS="$PI_PASS"
+EOF
+    chmod 600 "$DEPLOY_CONFIG"
+    print_success "Credentials saved to .deploy-config"
+}
+
 # Prompt for connection details
 get_connection_info() {
     echo ""
+
+    # Try to load existing config
+    if load_config; then
+        echo "Found saved credentials for ${PI_USER}@${PI_HOST}"
+        read -p "Use saved credentials? [Y/n]: " use_saved
+        use_saved=${use_saved:-Y}
+
+        if [[ "$use_saved" =~ ^[Yy]$ ]]; then
+            echo ""
+            return
+        fi
+        echo ""
+    fi
+
+    # Prompt for new credentials
     read -p "Enter Raspberry Pi IP address: " PI_HOST
     read -p "Enter username [pi]: " PI_USER
     PI_USER=${PI_USER:-pi}
     read -sp "Enter password: " PI_PASS
     echo ""
+    echo ""
+
+    # Offer to save
+    read -p "Save credentials for future deployments? [Y/n]: " save_creds
+    save_creds=${save_creds:-Y}
+
+    if [[ "$save_creds" =~ ^[Yy]$ ]]; then
+        save_config
+    fi
     echo ""
 }
 
@@ -82,7 +127,22 @@ install_dependencies() {
     # Check if Python packages are installed by testing a key import
     if ! run_on_pi "python3 -c 'import torch; import performer_pytorch' 2>/dev/null"; then
         echo "      Installing Python packages (this may take a while on first run)..."
-        run_on_pi "pip install --quiet pandas smbus numpy scikit-learn torch scipy RPi.GPIO board Adafruit-Blinka adafruit-circuitpython-bmp3xx performer-pytorch --break-system-packages 2>/dev/null || pip install --quiet pandas smbus numpy scikit-learn torch scipy RPi.GPIO board Adafruit-Blinka adafruit-circuitpython-bmp3xx performer-pytorch"
+        echo "      Note: Installing one at a time to avoid out-of-memory on Pi"
+
+        # Install packages one at a time with --no-cache-dir to save memory
+        local packages="pandas smbus numpy scikit-learn scipy RPi.GPIO board Adafruit-Blinka adafruit-circuitpython-bmp3xx"
+        for pkg in $packages; do
+            echo "        - $pkg"
+            run_on_pi "pip install --quiet --no-cache-dir $pkg --break-system-packages 2>/dev/null || pip install --quiet --no-cache-dir $pkg" || true
+        done
+
+        # Install torch separately (heaviest package)
+        echo "        - torch (this one takes longest)"
+        run_on_pi "pip install --quiet --no-cache-dir torch --break-system-packages 2>/dev/null || pip install --quiet --no-cache-dir torch" || true
+
+        # Install performer-pytorch last (depends on torch)
+        echo "        - performer-pytorch"
+        run_on_pi "pip install --quiet --no-cache-dir performer-pytorch --break-system-packages 2>/dev/null || pip install --quiet --no-cache-dir performer-pytorch" || true
     else
         echo "      Python packages already installed"
     fi
